@@ -157,7 +157,38 @@ def abundance_greedy_clustering(amplicon_file: Path, minseqlen: int, mincount: i
     :param kmer_size: (int) A fournir mais non utilise cette annee
     :return: (list) A list of all the [OTU (str), count (int)] .
     """
-    pass
+    otu_list = []
+
+    # Dereplicated sequences are sorted by decreasing abundance
+    sequences = dereplication_fulllength(
+        amplicon_file, 
+        minseqlen, 
+        mincount
+        )
+    
+    for sequence, count in sequences:
+        is_similar = False
+
+        for otu_sequence, otu_count in otu_list:
+            alignment = nw.global_align(
+                sequence,
+                otu_sequence,
+                gap_open=-1,
+                gap_extend=-1,
+                matrix=str(Path(__file__).parent / "MATCH")
+            )
+
+            identity = get_identity(alignment)
+
+            if identity > 97:
+                is_similar = True
+                break
+        
+        # Create a new OTU if no representative is sufficiently similar
+        if not is_similar:
+            otu_list.append([sequence, count])
+    
+    return otu_list
 
 
 def write_OTU(OTU_list: List, output_file: Path) -> None:
