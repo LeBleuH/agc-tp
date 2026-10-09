@@ -71,6 +71,10 @@ def get_arguments(): # pragma: no cover
                         help="Minimum sequence length for dereplication (default 400)")
     parser.add_argument('-m', '-mincount', dest='mincount', type=int, default = 10,
                         help="Minimum count for dereplication  (default 10)")
+    parser.add_argument('-c', '-chunk_size', dest='chunk_size', type=int, default = 100,
+                        help="Chunk size for OTU clustering (default 100)")
+    parser.add_argument('-k', '-kmer_size', dest='kmer_size', type=int, default = 8,
+                        help="Kmer size for OTU clustering (default 8)")
     parser.add_argument('-o', '-output_file', dest='output_file', type=Path,
                         default=Path("OTU.fasta"), help="Output file")
     return parser.parse_args()
@@ -214,7 +218,20 @@ def main(): # pragma: no cover
     """
     # Get arguments
     args = get_arguments()
-    # Votre programme ici
+    # Perform abundance greedy clustering
+    otu_list = abundance_greedy_clustering(
+        args.amplicon_file,
+        args.minseqlen,
+        args.mincount,
+        args.chunk_size,
+        args.kmer_size
+    )
+
+    # Write OTU sequences to file
+    write_OTU(
+        otu_list, 
+        args.output_file
+    )
 
 
 
